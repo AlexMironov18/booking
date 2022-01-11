@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd
+      http://www.liquibase.org/xml/ns/pro
+      http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd">
+
+
+    <changeSet author="AMironov" id="1" >
+        <createSequence sequenceName="hibernate_sequence"/>
+        <createTable tableName="revinfo">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revtstmp" type="BIGINT"/>
+        </createTable>
+        <addPrimaryKey columnNames="rev" constraintName="revinfo_pk" tableName="revinfo"/>
+    </changeSet>
+
+    <changeSet author="AMironov" id="3">
+        <createTable tableName="flight">
+            <column name="flight_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="flight_id_pk"/>
+            </column>
+            <column name="departure" type="VARCHAR(255)" remarks="Место отправки рейса">
+                <constraints nullable="false"/>
+            </column>
+            <column name="destination" type="VARCHAR(255)" remarks="Место прибытия рейса">
+                <constraints nullable="false"/>
+            </column>
+            <column name="departure_time" type="TIMESTAMP" remarks="Время отправки рейса">
+                <constraints nullable="false"/>
+            </column>
+            <column name="arrival_time" type="TIMESTAMP" remarks="Время прибытия рейса">
+                <constraints nullable="false"/>
+            </column>
+            <column name="load_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="AMironov" id="4">
+        <createTable tableName="customer">
+            <column name="customer_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="customer_id_pk"/>
+            </column>
+            <column name="user_id" type="VARCHAR(255)" remarks="Идентификатор пользователя">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)" remarks="Имя клиента">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(255)" remarks="Фамилия клиента"/>
+            <column name="middle_name" type="VARCHAR(255)" remarks="Фамилия клиента"/>
+            <column name="passport" type="VARCHAR(255)" remarks="Номер паспорта клиента">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="birth_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="load_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="AMironov" id="5">
+        <createTable tableName="ticket">
+            <column name="ticket_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="ticket_id_pk"/>
+            </column>
+            <column name="place" type="INTEGER" remarks="Номер места">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="NUMERIC" remarks="Цена билета">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)" remarks="Статус билета">
+                <constraints nullable="false"/>
+            </column>
+            <column name="flight_id" type="UUID" remarks="Идентификатор рейса">
+                <constraints nullable="false"
+                             foreignKeyName="flight_id_fk"
+                             referencedTableName="flight"
+                             referencedColumnNames="flight_id"/>
+            </column>
+            <column name="customer_id" type="UUID" remarks="Идентификатор клиента">
+                <constraints nullable="true"
+                             foreignKeyName="customer_id_fk"
+                             referencedTableName="customer"
+                             referencedColumnNames="customer_id"/>
+            </column>
+            <column name="load_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="AMironov" id="6">
+        <createTable tableName="ticket_hist">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="ticket_id" type="UUID">
+                <constraints nullable="false"
+                             foreignKeyName="ticket_hist_ticket_fk"
+                             referencedTableName="ticket"
+                             referencedColumnNames="ticket_id"/>
+            </column>
+            <column name="place" type="INTEGER" remarks="Номер места"/>
+            <column name="price" type="NUMERIC" remarks="Цена билета"/>
+            <column name="status" type="VARCHAR(255)" remarks="Статус билета"/>
+            <column name="load_date" type="TIMESTAMP" defaultValueComputed="current_datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP" defaultValueComputed="current_datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="AMironov" id="7">
+        <addPrimaryKey columnNames="ticket_id, rev" tableName="ticket_hist"/>
+    </changeSet>
+
+</databaseChangeLog>
