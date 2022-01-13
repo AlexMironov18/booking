@@ -35,8 +35,8 @@ class TicketServiceImplTest {
 
         var ticket = ticketRepository.findById(ticketId);
         assertAll(
-                () -> assertTrue(ticket.isPresent()),
-                () -> assertEquals(TicketStatus.VACANT, ticket.get().getStatus())
+            () -> assertTrue(ticket.isPresent()),
+            () -> assertEquals(TicketStatus.VACANT, ticket.get().getStatus())
         );
 
         var bookedTicket = ticketService.book(ticketId, customer);
@@ -53,8 +53,8 @@ class TicketServiceImplTest {
         Customer customer = getCustomer("1");
 
         TicketNotFoundException exception = assertThrows(
-                TicketNotFoundException.class,
-                () -> ticketService.book(ticketId, customer)
+            TicketNotFoundException.class,
+            () -> ticketService.book(ticketId, customer)
         );
 
         assertEquals("Ticket not found for ticketId=" + ticketId, exception.getMessage());
@@ -68,14 +68,14 @@ class TicketServiceImplTest {
 
         var ticket = ticketRepository.findById(ticketId);
         assertAll(
-                () -> assertTrue(ticket.isPresent()),
-                () -> assertEquals(TicketStatus.BOOKED, ticket.get().getStatus())
+            () -> assertTrue(ticket.isPresent()),
+            () -> assertEquals(TicketStatus.BOOKED, ticket.get().getStatus())
         );
 
         var cancelledTicket = ticketService.cancel(ticketId, userId);
         assertAll(
-                () -> assertEquals(TicketStatus.VACANT, cancelledTicket.getStatus()),
-                () -> assertNull(cancelledTicket.getCustomer())
+            () -> assertEquals(TicketStatus.VACANT, cancelledTicket.getStatus()),
+            () -> assertNull(cancelledTicket.getCustomer())
         );
     }
 
@@ -86,8 +86,8 @@ class TicketServiceImplTest {
         String userId = "someUserId";
 
         WrongUserException exception = assertThrows(
-                WrongUserException.class,
-                () -> ticketService.cancel(ticketId, userId)
+            WrongUserException.class,
+            () -> ticketService.cancel(ticketId, userId)
         );
 
         assertEquals("Action is not allowed for current user with userId=" + userId, exception.getMessage());

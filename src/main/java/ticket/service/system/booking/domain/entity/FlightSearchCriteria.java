@@ -3,6 +3,7 @@ package ticket.service.system.booking.domain.entity;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -12,4 +13,5 @@ public class FlightSearchCriteria {
     private LocalDateTime departureTimeTo;
     private String arrivalPlace;
     private String departurePlace;
+    private BigDecimal maxTicketPrice;
 }

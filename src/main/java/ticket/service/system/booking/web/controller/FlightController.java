@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ticket.service.system.booking.domain.service.FlightSearchService;
-import ticket.service.system.booking.web.dto.FlightDto;
 import ticket.service.system.booking.domain.entity.FlightPageCriteria;
 import ticket.service.system.booking.domain.entity.FlightSearchCriteria;
+import ticket.service.system.booking.domain.service.FlightSearchService;
+import ticket.service.system.booking.web.dto.FlightDto;
 import ticket.service.system.booking.web.dto.SearchFlightRequest;
 import ticket.service.system.booking.web.mapper.FlightSearchCriteriaMapper;
 import ticket.service.system.booking.web.mapper.FlightToFlightDtoMapper;
@@ -30,7 +30,7 @@ public class FlightController {
     public ResponseEntity<List<FlightDto>> search(@RequestBody SearchFlightRequest request) {
         FlightSearchCriteria flightSearchCriteria = flightSearchCriteriaMapper.mapSearch(request);
         FlightPageCriteria flightPageCriteria = flightSearchCriteriaMapper.mapPageable(request);
-        var result = flightSearchService.find(flightSearchCriteria, flightPageCriteria);
+        var result = flightSearchService.search(flightSearchCriteria, flightPageCriteria);
         return ResponseEntity.ok(result.get().map(flightToFlightDtoMapper::map).collect(Collectors.toList()));
     }
 }

@@ -6,14 +6,15 @@ import org.springframework.transaction.annotation.Transactional;
 import ticket.service.system.booking.domain.entity.Flight;
 import ticket.service.system.booking.domain.entity.FlightPageCriteria;
 import ticket.service.system.booking.domain.entity.FlightSearchCriteria;
+import ticket.service.system.booking.domain.entity.Ticket;
 import ticket.service.system.booking.domain.service.FlightSearchService;
+import ticket.service.system.booking.domain.entity.FlightSearchProjection;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class FlightSearchServiceImpl implements FlightSearchService {
@@ -29,18 +30,23 @@ public class FlightSearchServiceImpl implements FlightSearchService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Flight> find(FlightSearchCriteria searchCondition, FlightPageCriteria pageCriteria) {
-//        to fix HHH000104
+    public Page<Flight> search(FlightSearchCriteria searchCondition, FlightPageCriteria pageCriteria) {
+        //to fix HHH000104
+        //to avoid n+1 select when fetching related entity and pagination
+        //first select projection (or some field), since selecting whole entity itself would fetch related one automatically
+        //having found paginated ids of main entity - just select by id without pagination fetching related entities
         Pageable pageable = getPageable(pageCriteria);
-        CriteriaQuery<UUID> queryForIds = criteriaBuilder.createQuery(UUID.class);
+        CriteriaQuery<FlightSearchProjection> queryForIds = criteriaBuilder.createQuery(FlightSearchProjection.class);
         Root<Flight> rootFlightForIds = queryForIds.from(Flight.class);
-        Predicate predicateForIds = criteriaBuilder.and(createPredicates(searchCondition, rootFlightForIds).toArray(Predicate[]::new));
+        Join<Flight, Ticket> tickets = rootFlightForIds.join("tickets", JoinType.LEFT);
+        Predicate predicateForIds = criteriaBuilder.and(createPredicates(searchCondition, rootFlightForIds, tickets).toArray(Predicate[]::new));
 
         setOrder(pageCriteria, queryForIds, rootFlightForIds);
-        queryForIds.select(rootFlightForIds.get("id"))
-                    .where(predicateForIds);
+        queryForIds.multiselect(rootFlightForIds.get("id"), rootFlightForIds.get("departureTime"))
+                    .where(predicateForIds)
+                    .distinct(true);
 
-        List<UUID> flights = entityManager.createQuery(queryForIds)
+        List<FlightSearchProjection> flightsProjection = entityManager.createQuery(queryForIds)
                 .setFirstResult((pageCriteria.getPageNum() - 1) * pageCriteria.getPageSize())
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
@@ -48,24 +54,30 @@ public class FlightSearchServiceImpl implements FlightSearchService {
         CriteriaQuery<Flight> query = criteriaBuilder.createQuery(Flight.class);
         Root<Flight> flightRoot = query.from(Flight.class);
         flightRoot.fetch("tickets", JoinType.LEFT);
-        Predicate predicate = criteriaBuilder.or(flights.stream().map(id -> criteriaBuilder.equal(flightRoot.get("id"), id)).toArray(Predicate[]::new));
+        Predicate predicate = criteriaBuilder.or(
+                            flightsProjection.stream()
+                            .map(FlightSearchProjection::getFlightId)
+                            .map(id -> criteriaBuilder.equal(flightRoot.get("id"), id)
+                        )
+                        .toArray(Predicate[]::new));
 
-        setOrder(pageCriteria, queryForIds, rootFlightForIds);
+        setOrder(pageCriteria, query, flightRoot);
         query.select(flightRoot)
                 .where(predicate)
                 .distinct(true);
 
-        List<Flight> flights1 = entityManager.createQuery(query).getResultList();
+        List<Flight> flights = entityManager.createQuery(query).getResultList();
         long count = getFlightCount(searchCondition);
 
-        return new PageImpl<>(flights1, pageable, count);
+        return new PageImpl<>(flights, pageable, count);
     }
 
     private long getFlightCount(FlightSearchCriteria searchCondition) {
         CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
         Root<Flight> flight = countQuery.from(Flight.class);
-        Predicate predicate = criteriaBuilder.and(createPredicates(searchCondition, flight).toArray(Predicate[]::new));
-        countQuery.select(criteriaBuilder.count(flight)).where(predicate);
+        Join<Flight, Ticket> tickets = flight.join("tickets", JoinType.LEFT);
+        Predicate predicate = criteriaBuilder.and(createPredicates(searchCondition, flight, tickets).toArray(Predicate[]::new));
+        countQuery.select(criteriaBuilder.countDistinct(flight)).where(predicate).distinct(true);
         return entityManager.createQuery(countQuery).getSingleResult();
     }
 
@@ -82,7 +94,7 @@ public class FlightSearchServiceImpl implements FlightSearchService {
         }
     }
 
-    private List<Predicate> createPredicates(FlightSearchCriteria searchCondition, Root<Flight> flight) {
+    private List<Predicate> createPredicates(FlightSearchCriteria searchCondition, Root<Flight> flight, Join<Flight, Ticket> tickets) {
         List<Predicate> predicates = new ArrayList<>();
         if (searchCondition.getDepartureTimeFrom() != null) {
             predicates.add(criteriaBuilder.greaterThanOrEqualTo(flight.get("departureTime"), searchCondition.getDepartureTimeFrom()));
@@ -95,6 +107,9 @@ public class FlightSearchServiceImpl implements FlightSearchService {
         }
         if (searchCondition.getDeparturePlace() != null) {
             predicates.add(criteriaBuilder.equal(flight.get("departure"), searchCondition.getDeparturePlace()));
+        }
+        if (searchCondition.getMaxTicketPrice() != null) {
+            predicates.add(criteriaBuilder.lessThanOrEqualTo(tickets.get("price"), searchCondition.getMaxTicketPrice()));
         }
         return predicates;
     }

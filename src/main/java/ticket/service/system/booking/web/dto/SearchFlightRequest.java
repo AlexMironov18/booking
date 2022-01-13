@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.springframework.data.domain.Sort;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -25,6 +26,9 @@ public class SearchFlightRequest {
 
     @JsonProperty(value = "departure_place")
     private String departurePlace;
+
+    @JsonProperty(value = "max_ticket_price")
+    private BigDecimal maxTicketPrice;
 
     @JsonProperty(value = "page_num")
     private int pageNum = 1;

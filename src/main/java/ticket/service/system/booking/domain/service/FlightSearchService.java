@@ -6,5 +6,5 @@ import ticket.service.system.booking.domain.entity.FlightPageCriteria;
 import ticket.service.system.booking.domain.entity.FlightSearchCriteria;
 
 public interface FlightSearchService {
-    Page<Flight> find(FlightSearchCriteria searchCondition, FlightPageCriteria pageCriteria);
+    Page<Flight> search(FlightSearchCriteria searchCondition, FlightPageCriteria pageCriteria);
 }
