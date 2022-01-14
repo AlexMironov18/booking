@@ -11,6 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlightSearchProjection {
+    //contains flight id field and ones by which search can get sorted
     private UUID flightId;
     private LocalDateTime departureTime;
 }
