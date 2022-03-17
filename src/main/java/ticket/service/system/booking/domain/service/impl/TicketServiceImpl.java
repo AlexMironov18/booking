@@ -1,6 +1,7 @@
 package ticket.service.system.booking.domain.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ticket.service.system.booking.domain.entity.Customer;
@@ -13,6 +14,7 @@ import ticket.service.system.booking.repository.TicketRepository;
 
 import java.util.UUID;
 
+@Slf4j
 @Component
 @Transactional
 @RequiredArgsConstructor

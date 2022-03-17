@@ -2,6 +2,8 @@ package ticket.service.system.booking.web.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import ticket.service.system.booking.domain.entity.Customer;
 import ticket.service.system.booking.domain.entity.Flight;
@@ -9,7 +11,6 @@ import ticket.service.system.booking.domain.entity.Ticket;
 import ticket.service.system.booking.domain.entity.TicketStatus;
 import ticket.service.system.booking.domain.service.BookingService;
 import ticket.service.system.booking.domain.service.TicketService;
-import ticket.service.system.booking.repository.FlightRepository;
 import ticket.service.system.booking.web.dto.BookingRequest;
 import ticket.service.system.booking.web.dto.TicketDto;
 import ticket.service.system.booking.web.mapper.BookingRequestToCustomerMapper;
@@ -28,20 +29,22 @@ public class TicketController {
 
     private final TicketToTicketDtoMapper ticketToTicketDtoMapper;
     private final BookingRequestToCustomerMapper customerMapper;
-    private final FlightRepository flightRepository;
+//    private final FlightRepository flightRepository;
     private final BookingService bookingService;
     private final TicketService ticketService;
 
     @PostMapping(value = "/book")
+    @PreAuthorize("hasAnyAuthority('role_user')")
     public ResponseEntity<TicketDto> book(@PathVariable(name = "ticketId") UUID ticketId,
                                           @RequestBody @Valid BookingRequest request,
-                                          @RequestParam String userId) {
+                                          @RequestParam(name = "userId")  String userId) {
         Customer customer = customerMapper.map(request, userId);
         var bookedTicket = bookingService.book(ticketId, customer);
         return ResponseEntity.ok(ticketToTicketDtoMapper.map(bookedTicket));
     }
 
     @DeleteMapping(value = "/book")
+    @PreAuthorize("hasAnyAuthority('role_user')")
     public ResponseEntity<TicketDto> cancel(@PathVariable(name = "ticketId") UUID ticketId,
                                             @RequestParam String userId) {
         var canceledTicket = bookingService.cancel(ticketId, userId);
@@ -49,8 +52,10 @@ public class TicketController {
     }
 
     @GetMapping(value = "/check")
+    @PreAuthorize("hasAnyAuthority('role_admin')")
     public ResponseEntity<TicketDto> check(@PathVariable(name = "ticketId") UUID ticketId,
-                                          @RequestParam String userId) {
+                                           @RequestParam String userId,
+                                           JwtAuthenticationToken token) {
         var ticket = ticketService.check(ticketId, userId);
         return ResponseEntity.ok(ticketToTicketDtoMapper.map(ticket));
     }
@@ -85,7 +90,7 @@ public class TicketController {
         flight.addTickets(ticket);
         flight.addTickets(ticket2);
         flight.addTickets(ticket3);
-        flightRepository.save(flight);
+//        flightRepository.save(flight);
         return ResponseEntity.ok("ok");
     }
 }

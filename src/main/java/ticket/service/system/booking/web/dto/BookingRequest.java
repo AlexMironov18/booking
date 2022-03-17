@@ -3,6 +3,7 @@ package ticket.service.system.booking.web.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
 import ticket.service.system.booking.web.validation.Email;
 
@@ -11,6 +12,7 @@ import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 
 @Data
+@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BookingRequest {
 

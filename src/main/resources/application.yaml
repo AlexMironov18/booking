@@ -1,0 +1,9 @@
+server:
+  port: 8080
+spring:
+  application.name: ticket-service-system-booking
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/auth/realms/booking/protocol/openid-connect/certs

@@ -2,6 +2,7 @@ package ticket.service.system.booking.web.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +28,7 @@ public class FlightController {
     private final FlightSearchCriteriaMapper flightSearchCriteriaMapper;
 
     @PostMapping(value = "/search")
+    @PreAuthorize("hasAnyAuthority('role_user')")
     public ResponseEntity<List<FlightDto>> search(@RequestBody SearchFlightRequest request) {
         FlightSearchCriteria flightSearchCriteria = flightSearchCriteriaMapper.mapSearch(request);
         FlightPageCriteria flightPageCriteria = flightSearchCriteriaMapper.mapPageable(request);
