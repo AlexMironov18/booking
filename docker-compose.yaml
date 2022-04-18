@@ -1,0 +1,35 @@
+version: '3'
+services:
+  booking:
+    build: .
+    ports:
+      - 8080:8080
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/db
+      - SPRING_DATASOURCE_USERNAME=alex
+      - SPRING_DATASOURCE_PASSWORD=123
+      - SPRING_REDIS_HOST=cache
+      - SPRING_REDIS_PORT=6379
+    links:
+      - cache
+    depends_on:
+      - db
+      - redis
+  cache:
+    image: redis
+    hostname: cache
+    ports:
+      - 6379:6379
+  db:
+    image: postgres:12
+    ports:
+      - 5434:5432
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=alex
+      - POSTGRES_DB=db
+      - POSTGRES_PASSWORD=123
+
+volumes:
+  db-data:

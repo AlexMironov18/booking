@@ -1,0 +1,16 @@
+ARG MAVEN_VERSION=3.8.4
+ARG JAVA_VERSION=11
+
+FROM openjdk:${JAVA_VERSION}-jre as builder
+WORKDIR /app
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+RUN java -Djarmode=layertools -jar app.jar extract
+
+FROM openjdk:${JAVA_VERSION}-jre
+WORKDIR /app
+COPY --from=builder app/dependencies/ ./
+COPY --from=builder app/spring-boot-loader/ ./
+COPY --from=builder app/snapshot-dependencies/ ./
+COPY --from=builder app/application/ ./
+ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
